@@ -1,6 +1,7 @@
 # HospIntel — Dockerfile for Coolify (Next.js 16 + Prisma)
 # Build: docker build -t hospintel .
 # Run: docker run -p 3000:3000 --env-file .env hospintel
+# Note: Do not pass secrets as ARG/ENV in build. Set DATABASE_URL, SESSION_SECRET, etc. at runtime only (e.g. Coolify env vars).
 
 FROM node:20-alpine AS base
 
