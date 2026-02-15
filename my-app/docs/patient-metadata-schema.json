@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Standardized Patient Metadata Schema",
+  "description": "Schema for patient metadata as per competition data guidelines. Use for synthetic data generation and ingestion.",
+  "type": "object",
+  "required": ["Patient_ID", "Age", "Gender", "Symptoms", "Blood_Pressure", "Heart_Rate", "Temperature", "Pre_Existing_Conditions"],
+  "properties": {
+    "Patient_ID": {
+      "type": "string",
+      "description": "Unique patient identifier (e.g. UUID)",
+      "format": "uuid"
+    },
+    "Age": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 150,
+      "description": "Patient age in years"
+    },
+    "Gender": {
+      "type": "string",
+      "description": "Patient gender (e.g. Male, Female, Other)",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "Symptoms": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of reported symptoms"
+    },
+    "Blood_Pressure": {
+      "type": "string",
+      "description": "Blood pressure reading (e.g. 120/80)",
+      "pattern": "^\\d{2,3}/\\d{2,3}$"
+    },
+    "Heart_Rate": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 300,
+      "description": "Heart rate in bpm"
+    },
+    "Temperature": {
+      "type": "number",
+      "minimum": 90,
+      "maximum": 110,
+      "description": "Temperature in °F"
+    },
+    "Pre_Existing_Conditions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of pre-existing medical conditions"
+    },
+    "Risk_Level": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "REVIEW_REQUIRED"],
+      "description": "Optional for training; triage-assigned risk level"
+    }
+  },
+  "additionalProperties": false
+}
