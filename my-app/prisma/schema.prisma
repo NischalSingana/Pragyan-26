@@ -80,6 +80,33 @@ model UploadedDocument {
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 }
 
+// ---------- Organization & Auth ----------
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  users User[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String
+  passwordHash   String
+  name           String
+  role           UserRole     @default(TRIAGE_NURSE)
+  organizationId  String
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([email])
+}
+
 // ---------- Audit (Phase 1) ----------
 
 model AuditLog {
