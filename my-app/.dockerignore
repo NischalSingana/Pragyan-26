@@ -1,0 +1,26 @@
+# Dependencies and build
+node_modules
+.next
+out
+
+# Env and secrets (Coolify injects at runtime)
+.env
+.env.*
+!.env.example
+*credentials*.json
+google_credentials.json
+
+# Git and IDE
+.git
+.gitignore
+.cursor
+*.md
+!README.md
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+data
+coverage
+.vercel

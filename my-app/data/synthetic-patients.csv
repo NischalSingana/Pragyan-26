@@ -1,0 +1,4 @@
+Patient_ID,Age,Gender,Symptoms,Blood_Pressure,Heart_Rate,Temperature,Pre_Existing_Conditions,Risk_Level
+317eb499-1e1c-431b-bc45-efa539e2e255,51,"Other","Weakness;Abdominal pain;Nausea;Chest tightness",134/60,74,101.1,"Thyroid disorder;Diabetes;Hypertension",HIGH
+235ca64c-e459-47c2-85ea-8c00307dce76,28,"Female","Back pain;Chest pain;Dizziness;Cough",142/72,97,100.1,"",LOW
+5e8a1058-25c1-4af6-a13c-9e2bd147fbd7,44,"Male","Dizziness;Nausea;Palpitations;Fatigue",141/61,106,102.1,"Hypertension;COPD",LOW

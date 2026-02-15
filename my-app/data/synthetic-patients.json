@@ -1,0 +1,57 @@
+[
+  {
+    "Patient_ID": "317eb499-1e1c-431b-bc45-efa539e2e255",
+    "Age": 51,
+    "Gender": "Other",
+    "Symptoms": [
+      "Weakness",
+      "Abdominal pain",
+      "Nausea",
+      "Chest tightness"
+    ],
+    "Blood_Pressure": "134/60",
+    "Heart_Rate": 74,
+    "Temperature": 101.1,
+    "Pre_Existing_Conditions": [
+      "Thyroid disorder",
+      "Diabetes",
+      "Hypertension"
+    ],
+    "Risk_Level": "HIGH"
+  },
+  {
+    "Patient_ID": "235ca64c-e459-47c2-85ea-8c00307dce76",
+    "Age": 28,
+    "Gender": "Female",
+    "Symptoms": [
+      "Back pain",
+      "Chest pain",
+      "Dizziness",
+      "Cough"
+    ],
+    "Blood_Pressure": "142/72",
+    "Heart_Rate": 97,
+    "Temperature": 100.1,
+    "Pre_Existing_Conditions": [],
+    "Risk_Level": "LOW"
+  },
+  {
+    "Patient_ID": "5e8a1058-25c1-4af6-a13c-9e2bd147fbd7",
+    "Age": 44,
+    "Gender": "Male",
+    "Symptoms": [
+      "Dizziness",
+      "Nausea",
+      "Palpitations",
+      "Fatigue"
+    ],
+    "Blood_Pressure": "141/61",
+    "Heart_Rate": 106,
+    "Temperature": 102.1,
+    "Pre_Existing_Conditions": [
+      "Hypertension",
+      "COPD"
+    ],
+    "Risk_Level": "LOW"
+  }
+]
