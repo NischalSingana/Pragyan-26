@@ -12,11 +12,13 @@ export type DashboardData = {
     adjusted?: boolean;
     estimatedWaitMin?: number;
     priorityScore?: number;
+    assignedDoctor?: { id: string; name: string; departmentName: string } | null;
     explanation?: { confidence?: number; contributing_factors?: Array<{ factor: string; impact: number }> } | null;
     ewsScore?: number | null;
     aiDisagreement?: boolean | null;
     createdAt: string;
   }>;
+  departmentWiseDoctors?: Record<string, Array<{ id: string; name: string; departmentName: string }>>;
   departmentLoads: Array<{
     id: string;
     departmentName: string;
@@ -38,6 +40,7 @@ export type DashboardData = {
     adjusted?: boolean;
     estimatedWaitMin?: number;
     priorityScore?: number;
+    assignedDoctor?: { id: string; name: string; departmentName: string } | null;
   }>;
   waitTimeByDept?: Array<{
     department: string;

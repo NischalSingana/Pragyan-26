@@ -66,21 +66,13 @@ export function AppSidebar({
       </nav>
       <div className="border-t border-sidebar-border p-4 space-y-2">
         {session && (
-          <>
-            <p className="text-xs font-medium text-sidebar-foreground truncate" title={session.organization.name}>
-              {session.organization.name}
-            </p>
-            <p className="text-xs text-muted-foreground truncate" title={session.user.email}>
-              {session.user.name}
-            </p>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="text-xs font-medium text-primary hover:underline"
-            >
-              Sign out
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="text-xs font-medium text-primary hover:underline"
+          >
+            Sign out
+          </button>
         )}
         {!session && (
           <>

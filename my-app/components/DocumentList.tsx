@@ -1,15 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { DocumentViewer } from "@/components/DocumentViewer";
-import { ehrToFormData } from "@/lib/ai/ehrTypes";
-import type { EhrFormData, EhrStructuredData } from "@/lib/ai/ehrTypes";
+import type { EhrStructuredData } from "@/lib/ai/ehrTypes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-const PENDING_APPLY_KEY = "smart-triage-pending-ehr-form-data";
+function AiAnalysisBlock({ data }: { data: EhrStructuredData }) {
+  const symptoms = data.symptoms?.map((s) => s.value).filter(Boolean) ?? [];
+  const conditions = data.conditions?.map((c) => c.value).filter(Boolean) ?? [];
+  const medications = data.medications?.map((m) => m.value).filter(Boolean) ?? [];
+  const vitals = data.vitals ?? {};
+  const hasVitals = Object.keys(vitals).length > 0;
+  const hasAny = symptoms.length > 0 || conditions.length > 0 || medications.length > 0 || hasVitals;
+  if (!hasAny) return <p className="mt-1 text-muted-foreground text-xs">No structured data extracted.</p>;
+  return (
+    <div className="mt-2 space-y-2 text-sm">
+      {symptoms.length > 0 && (
+        <div>
+          <span className="font-medium text-foreground">Symptoms:</span>
+          <p className="text-muted-foreground">{symptoms.join(", ")}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Care: clinical review and triage recommended based on symptoms.</p>
+        </div>
+      )}
+      {conditions.length > 0 && (
+        <div>
+          <span className="font-medium text-foreground">Conditions:</span>
+          <p className="text-muted-foreground">{conditions.join(", ")}</p>
+        </div>
+      )}
+      {medications.length > 0 && (
+        <div>
+          <span className="font-medium text-foreground">Medications:</span>
+          <p className="text-muted-foreground">{medications.join(", ")}</p>
+        </div>
+      )}
+      {hasVitals && (
+        <div>
+          <span className="font-medium text-foreground">Vitals:</span>
+          <p className="text-muted-foreground">
+            {[vitals.bp && `BP ${vitals.bp}`, vitals.heartRate != null && `HR ${vitals.heartRate}`, vitals.temperature != null && `Temp ${vitals.temperature}°F`, vitals.spO2 != null && `SpO2 ${vitals.spO2}%`].filter(Boolean).join(" · ")}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export type UploadedDocumentRecord = {
   id: string;
@@ -23,31 +60,16 @@ export type UploadedDocumentRecord = {
 
 type Props = {
   documents: UploadedDocumentRecord[];
-  applyDataRef: React.MutableRefObject<((data: EhrFormData) => void) | null>;
+  applyDataRef: React.MutableRefObject<((data: import("@/lib/ai/ehrTypes").EhrFormData) => void) | null>;
   onDocumentComplete: () => void;
 };
 
 export function DocumentList({
   documents,
-  applyDataRef,
   onDocumentComplete,
 }: Props) {
-  const router = useRouter();
   const [pollingIds, setPollingIds] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const handleApplyToForm = (data: EhrFormData) => {
-    if (applyDataRef.current) {
-      applyDataRef.current(data);
-    } else {
-      try {
-        sessionStorage.setItem(PENDING_APPLY_KEY, JSON.stringify(data));
-        router.push("/patients");
-      } catch {
-        // ignore storage errors
-      }
-    }
-  };
 
   const processingIds = documents
     .filter(
@@ -89,11 +111,6 @@ export function DocumentList({
       <h3 className="text-muted-foreground text-sm font-medium">Patient documents</h3>
       {documents.map((doc) => {
         const isDone = doc.processingStatus === "AI_EXTRACTED";
-        const statusVariant = isDone
-          ? "default"
-          : doc.processingStatus === "FAILED"
-            ? "destructive"
-            : "secondary";
         return (
         <Card key={doc.id} className="rounded-md border border-border bg-card">
           <CardContent className="p-3">
@@ -117,14 +134,17 @@ export function DocumentList({
               <p className="mt-1 text-destructive text-xs">{doc.processingError}</p>
             )}
             {isDone && doc.structuredData && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Button type="button" size="sm" className="rounded-md" onClick={() => handleApplyToForm(ehrToFormData(doc.structuredData!))}>
-                  Apply to form
-                </Button>
-                <Button type="button" size="sm" variant="outline" className="rounded-md" onClick={() => setExpandedId((x) => (x === doc.id ? null : doc.id))}>
-                  {expandedId === doc.id ? "Hide text" : "View with highlights"}
-                </Button>
-              </div>
+              <>
+                <div className="mt-3 rounded-md border border-border bg-muted/30 p-3">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">AI analysis</h4>
+                  <AiAnalysisBlock data={doc.structuredData} />
+                </div>
+                <div className="mt-2">
+                  <Button type="button" size="sm" variant="outline" className="rounded-md" onClick={() => setExpandedId((x) => (x === doc.id ? null : doc.id))}>
+                    {expandedId === doc.id ? "Hide text" : "View with highlights"}
+                  </Button>
+                </div>
+              </>
             )}
             {expandedId === doc.id && (
               <div className="mt-3">

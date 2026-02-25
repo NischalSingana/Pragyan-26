@@ -36,6 +36,20 @@ enum UserRole {
 
 // ---------- Core models ----------
 
+model Doctor {
+  id             String   @id @default(uuid())
+  name           String
+  departmentName String
+  isAvailable    Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  assignedPatients Patient[]
+
+  @@unique([departmentName, name])
+  @@index([departmentName])
+  @@index([isAvailable])
+}
+
 model Patient {
   id                    String    @id @default(uuid())
   name                  String
@@ -52,9 +66,13 @@ model Patient {
   explanation           Json?
   ewsScore              Float?    // Early Warning Score (Phase 3)
   aiDisagreement        Boolean   @default(false) // Phase 2 ensemble
+  assignedDoctorId      String?
   createdAt             DateTime  @default(now())
 
-  documents UploadedDocument[]
+  documents       UploadedDocument[]
+  assignedDoctor Doctor?          @relation(fields: [assignedDoctorId], references: [id], onDelete: SetNull)
+
+  @@index([assignedDoctorId])
 }
 
 model DepartmentLoad {

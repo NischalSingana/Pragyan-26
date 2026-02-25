@@ -44,20 +44,25 @@ export default function DocumentsPage() {
   }, [selectedPatientId, refresh, fetchPatientDocuments]);
 
   const patients = data?.patients ?? [];
+  const selectedPatient = selectedPatientId
+    ? patients.find((p) => p.id === selectedPatientId)
+    : null;
 
   return (
     <>
       <header className="border-b border-border bg-card px-5 py-6 lg:px-8">
         <div className="mx-auto max-w-5xl">
           <h1 className="text-2xl font-semibold text-foreground">Documents</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">Upload EHRs · OCR + AI extraction</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Select a patient → Upload report docs → AI analysis (symptoms, conditions, medications, vitals)
+          </p>
         </div>
       </header>
 
       <div className="mx-auto max-w-5xl space-y-5 p-5 lg:p-8">
         {patients.length > 0 && (
           <div className="minimal-card p-4">
-            <label className="mb-2 block text-sm font-medium text-foreground">Select patient</label>
+            <label className="mb-2 block text-sm font-medium text-foreground">1. Select patient</label>
             <select
               value={selectedPatientId ?? ""}
               onChange={(e) => setSelectedPatientId(e.target.value || null)}
@@ -73,9 +78,21 @@ export default function DocumentsPage() {
           </div>
         )}
 
+        {selectedPatientId && (
+          <div className="minimal-card border-primary/20 bg-primary/5 p-4">
+            <p className="text-sm font-medium text-foreground">
+              2. Upload report documents for <span className="text-primary">{selectedPatient?.name ?? "this patient"}</span>
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              We’ll run AI analysis and show symptoms, conditions, medications, vitals, and care notes.
+            </p>
+          </div>
+        )}
+
         <div className="minimal-card p-5">
           <FileUpload
             patientId={selectedPatientId}
+            selectedPatientName={selectedPatient?.name}
             documents={patientDocuments}
             applyDataRef={applyDataRef}
             onUploadComplete={onUploadOrDocumentUpdate}
@@ -84,7 +101,7 @@ export default function DocumentsPage() {
         </div>
 
         {patients.length === 0 && (
-          <p className="text-muted-foreground text-sm">Add a patient on the Patients page first, then select them here to upload documents.</p>
+          <p className="text-muted-foreground text-sm">Add a patient on the Patients page first, then select them here to upload report documents.</p>
         )}
       </div>
     </>

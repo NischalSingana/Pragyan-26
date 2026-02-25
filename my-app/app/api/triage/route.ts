@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { pickRandomDoctorByDepartment } from "@/lib/doctorAssign";
 import { triageRequestSchema } from "@/lib/validations/triage";
 import { runEnsembleTriage, ensembleToRiskLevel, buildExplanationJson } from "@/lib/triageEngine";
 import { computeEWSScore } from "@/lib/ews";
@@ -47,6 +48,13 @@ export async function POST(request: NextRequest) {
     const riskLevel = ensembleToRiskLevel(result) as RiskLevel;
     const explanation = buildExplanationJson(result, ewsScore) as Prisma.InputJsonValue;
 
+    const isHighPriority = riskLevel === RiskLevel.HIGH || riskLevel === RiskLevel.REVIEW_REQUIRED;
+    let assignedDoctorId: string | null = null;
+    if (isHighPriority) {
+      const doctor = await pickRandomDoctorByDepartment(prisma, result.recommended_department);
+      if (doctor) assignedDoctorId = doctor.id;
+    }
+
     const patient = await prisma.patient.create({
       data: {
         name: data.name,
@@ -63,6 +71,7 @@ export async function POST(request: NextRequest) {
         explanation,
         ewsScore,
         aiDisagreement: result.disagreement,
+        assignedDoctorId,
       },
     });
 

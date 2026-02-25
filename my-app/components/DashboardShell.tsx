@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 const nav = [
   { label: "Dashboard", href: "/" },
   { label: "Patients", href: "/patients" },
+  { label: "Doctors", href: "/doctors" },
   { label: "Documents", href: "/documents" },
   { label: "Analytics", href: "/analytics" },
   { label: "Alerts", href: "/alerts" },

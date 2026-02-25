@@ -23,6 +23,7 @@ export async function GET() {
     const [
       patientsRaw,
       departmentLoads,
+      doctors,
       riskCounts,
       totalPatients,
       patientsForForecast,
@@ -41,10 +42,19 @@ export async function GET() {
           explanation: true,
           ewsScore: true,
           aiDisagreement: true,
+          assignedDoctorId: true,
           createdAt: true,
+          assignedDoctor: {
+            select: { id: true, name: true, departmentName: true },
+          },
         },
       }),
       prisma.departmentLoad.findMany({ orderBy: { departmentName: "asc" } }),
+      prisma.doctor.findMany({
+        where: { isAvailable: true },
+        orderBy: [{ departmentName: "asc" }, { name: "asc" }],
+        select: { id: true, name: true, departmentName: true },
+      }),
       prisma.patient.groupBy({
         by: ["riskLevel"],
         _count: { id: true },
@@ -84,12 +94,24 @@ export async function GET() {
       patientsRaw.map((p) => ({
         ...p,
         createdAt: p.createdAt.toISOString(),
+        assignedDoctor: p.assignedDoctor
+          ? { id: p.assignedDoctor.id, name: p.assignedDoctor.name, departmentName: p.assignedDoctor.departmentName }
+          : null,
       })),
       departmentLoads
     );
 
+    const departmentWiseDoctors = doctors.reduce(
+      (acc, doc) => {
+        if (!acc[doc.departmentName]) acc[doc.departmentName] = [];
+        acc[doc.departmentName].push({ id: doc.id, name: doc.name, departmentName: doc.departmentName });
+        return acc;
+      },
+      {} as Record<string, Array<{ id: string; name: string; departmentName: string }>>
+    );
+
     const highRiskPatients = patients
-      .filter((p) => p.riskLevel === "HIGH")
+      .filter((p) => p.riskLevel === "HIGH" || p.riskLevel === "REVIEW_REQUIRED")
       .sort((a, b) => (b.priorityScore ?? 0) - (a.priorityScore ?? 0))
       .slice(0, 20);
 
@@ -195,6 +217,7 @@ export async function GET() {
       totalPatients,
       patients,
       departmentLoads: deptLoads,
+      departmentWiseDoctors,
       riskDistribution,
       highRiskPatients,
       waitTimeByDept,

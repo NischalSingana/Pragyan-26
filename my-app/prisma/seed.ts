@@ -64,6 +64,38 @@ async function main() {
     },
   });
   console.log("Seeded department loads.");
+
+  // Demo doctors per department
+  const doctorData: Array<{ name: string; departmentName: string }> = [
+    { name: "Dr. Sarah Chen", departmentName: "General Medicine" },
+    { name: "Dr. James Wilson", departmentName: "General Medicine" },
+    { name: "Dr. Priya Sharma", departmentName: "General Medicine" },
+    { name: "Dr. Michael Torres", departmentName: "Emergency" },
+    { name: "Dr. Emily Park", departmentName: "Emergency" },
+    { name: "Dr. David Okonkwo", departmentName: "Emergency" },
+    { name: "Dr. Lisa Nguyen", departmentName: "Cardiology" },
+    { name: "Dr. Robert Kim", departmentName: "Cardiology" },
+    { name: "Dr. Anna Patel", departmentName: "Neurology" },
+    { name: "Dr. Thomas Wright", departmentName: "Neurology" },
+    { name: "Dr. Maria Santos", departmentName: "Orthopedics" },
+    { name: "Dr. John Foster", departmentName: "Orthopedics" },
+    { name: "Dr. Rachel Green", departmentName: "Others" },
+    { name: "Dr. Kevin Lee", departmentName: "Others" },
+  ];
+  for (const d of doctorData) {
+    await prisma.doctor.upsert({
+      where: {
+        departmentName_name: { departmentName: d.departmentName, name: d.name },
+      },
+      update: { isAvailable: true },
+      create: {
+        name: d.name,
+        departmentName: d.departmentName,
+        isAvailable: true,
+      },
+    });
+  }
+  console.log("Seeded demo doctors.");
 }
 
 main()

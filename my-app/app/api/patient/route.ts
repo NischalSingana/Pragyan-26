@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { pickRandomDoctorByDepartment } from "@/lib/doctorAssign";
 import { createPatientSchema } from "@/lib/validations/patient";
 import { RiskLevel } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
@@ -15,6 +16,15 @@ export async function POST(request: NextRequest) {
       );
     }
     const data = parsed.data;
+    const isHighPriority =
+      data.riskLevel === RiskLevel.HIGH || data.riskLevel === RiskLevel.REVIEW_REQUIRED;
+
+    let assignedDoctorId: string | null = null;
+    if (isHighPriority) {
+      const doctor = await pickRandomDoctorByDepartment(prisma, data.recommendedDepartment);
+      if (doctor) assignedDoctorId = doctor.id;
+    }
+
     const patient = await prisma.patient.create({
       data: {
         name: data.name,
@@ -29,6 +39,7 @@ export async function POST(request: NextRequest) {
         riskLevel: data.riskLevel as RiskLevel,
         recommendedDepartment: data.recommendedDepartment,
         explanation: (data.explanation ?? undefined) as Prisma.InputJsonValue | undefined,
+        assignedDoctorId,
       },
     });
     return NextResponse.json(patient, { status: 201 });

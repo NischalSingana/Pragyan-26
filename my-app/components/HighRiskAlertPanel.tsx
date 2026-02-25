@@ -12,6 +12,7 @@ type Patient = {
   adjusted?: boolean;
   estimatedWaitMin?: number;
   priorityScore?: number;
+  assignedDoctor?: { id: string; name: string; departmentName: string } | null;
 };
 
 type Props = {
@@ -45,13 +46,21 @@ export function HighRiskAlertPanel({ patients }: Props) {
               <span className="text-muted-foreground text-sm">
                 {p.age}y · {p.adjustedDepartment ?? p.recommendedDepartment}
               </span>
+              <Badge variant="outline" className="rounded-full border-destructive/50 bg-destructive/10 px-2 py-0 text-xs text-destructive">
+                {p.riskLevel}
+              </Badge>
               {p.adjusted && (
                 <Badge className="rounded-full border-destructive/40 bg-destructive/15 px-2.5 py-0.5 text-destructive">
                   Re-routed
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              {p.assignedDoctor && (
+                <span className="rounded bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                  → {p.assignedDoctor.name}
+                </span>
+              )}
               <span className="text-muted-foreground">~{p.estimatedWaitMin ?? "—"} min</span>
               <Badge className="rounded-full bg-destructive/15 px-2.5 py-0.5 font-medium text-destructive">
                 {(p.priorityScore ?? 0).toFixed(2)}

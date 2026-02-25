@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { pickRandomDoctorByDepartment } from "@/lib/doctorAssign";
 import { uploadToR2, R2_BUCKET } from "@/lib/r2";
 import { processDocumentInBackground } from "@/lib/documentProcessor";
 import { DocumentProcessingStatus } from "@prisma/client";
+import { RiskLevel } from "@prisma/client";
 import { getRoleFromRequest } from "@/lib/audit";
 import { auditLog } from "@/lib/audit";
 import { randomUUID } from "crypto";
@@ -50,12 +52,38 @@ export async function POST(request: NextRequest) {
 
     const patient = await prisma.patient.findUnique({
       where: { id: patientId.trim() },
+      select: {
+        id: true,
+        riskLevel: true,
+        recommendedDepartment: true,
+        assignedDoctorId: true,
+      },
     });
     if (!patient) {
       return NextResponse.json(
         { error: "Patient not found" },
         { status: 404 }
       );
+    }
+
+    const isHighPriority =
+      patient.riskLevel === RiskLevel.HIGH || patient.riskLevel === RiskLevel.REVIEW_REQUIRED;
+    let assignedDoctor: { id: string; name: string; departmentName: string } | null = null;
+    if (isHighPriority && !patient.assignedDoctorId) {
+      const doctor = await pickRandomDoctorByDepartment(prisma, patient.recommendedDepartment);
+      if (doctor) {
+        const updated = await prisma.doctor.findUnique({
+          where: { id: doctor.id },
+          select: { id: true, name: true, departmentName: true },
+        });
+        if (updated) {
+          await prisma.patient.update({
+            where: { id: patient.id },
+            data: { assignedDoctorId: updated.id },
+          });
+          assignedDoctor = updated;
+        }
+      }
     }
 
     const ext = file.name.split(".").pop() ?? "bin";
@@ -83,13 +111,18 @@ export async function POST(request: NextRequest) {
       metadata: { documentId: doc.id, fileUrl },
     });
 
+    const message = assignedDoctor
+      ? `File uploaded. Extraction running in background. Doctor auto-assigned: ${assignedDoctor.name} (${assignedDoctor.departmentName}).`
+      : "File uploaded. Extraction running in background.";
+
     return NextResponse.json(
       {
         id: doc.id,
         fileUrl,
         documentId: doc.id,
         status: doc.processingStatus,
-        message: "File uploaded. Extraction running in background.",
+        message,
+        assignedDoctor: assignedDoctor ?? undefined,
       },
       { status: 201 }
     );

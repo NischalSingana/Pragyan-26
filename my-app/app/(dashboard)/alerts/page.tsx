@@ -17,8 +17,15 @@ export default function AlertsPage() {
   if (error) {
     return (
       <div className="mx-auto max-w-5xl p-5">
-        <div className="minimal-card max-w-md p-5 text-destructive">
-          <p className="font-medium">{error}</p>
+        <div className="minimal-card max-w-md space-y-4 p-5">
+          <p className="font-medium text-destructive">{error}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="rounded-md border border-primary bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );

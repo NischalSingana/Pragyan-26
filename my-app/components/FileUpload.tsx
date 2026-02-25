@@ -17,6 +17,7 @@ type DocumentRecord = {
 
 type Props = {
   patientId: string | null;
+  selectedPatientName?: string | null;
   documents: DocumentRecord[];
   applyDataRef: React.MutableRefObject<((data: import("@/lib/ai/ehrTypes").EhrFormData) => void) | null>;
   onUploadComplete: () => void;
@@ -25,6 +26,7 @@ type Props = {
 
 export function FileUpload({
   patientId,
+  selectedPatientName,
   documents,
   applyDataRef,
   onUploadComplete,
@@ -33,6 +35,7 @@ export function FileUpload({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [assignedDoctor, setAssignedDoctor] = useState<{ name: string; departmentName: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,6 +47,7 @@ export function FileUpload({
     }
     setError(null);
     setSuccess(null);
+    setAssignedDoctor(null);
     setLoading(true);
     try {
       const formData = new FormData();
@@ -61,6 +65,12 @@ export function FileUpload({
       setSuccess(
         data.message ?? "File uploaded. Extraction running in background."
       );
+      if (data.assignedDoctor) {
+        setAssignedDoctor({
+          name: data.assignedDoctor.name,
+          departmentName: data.assignedDoctor.departmentName,
+        });
+      }
       onUploadComplete();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -73,9 +83,9 @@ export function FileUpload({
   return (
     <div>
       <p className="mb-4 text-muted-foreground text-sm">
-        Upload an EHR/EMR health document as PDF (text) or image (JPEG/PNG).
-        Images use Google Vision for handwritten doc scanning; then AI extracts
-        medical entities. Processing runs in the background.
+        {patientId && selectedPatientName
+          ? `Upload report documents (PDF or image) for ${selectedPatientName}. We'll analyze and extract symptoms, conditions, medications, and vitals.`
+          : "Select a patient above, then upload report documents. PDF or image (JPEG/PNG) — AI extraction runs in the background."}
       </p>
       <input
         ref={inputRef}
@@ -100,6 +110,11 @@ export function FileUpload({
       </Button>
       {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
       {success && <p className="mt-2 text-sm text-primary">{success}</p>}
+      {assignedDoctor && (
+        <p className="mt-1.5 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
+          Doctor auto-assigned: {assignedDoctor.name} ({assignedDoctor.departmentName})
+        </p>
+      )}
       <DocumentList
         documents={documents}
         applyDataRef={applyDataRef}
